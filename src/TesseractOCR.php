@@ -16,6 +16,7 @@ class TesseractOCR
 
 	public function run()
 	{
+		FriendlyErrors::checkDisabledFunctions();
 		FriendlyErrors::checkTesseractPresence($this->command->executable);
 		FriendlyErrors::checkImagePath($this->command->image);
 

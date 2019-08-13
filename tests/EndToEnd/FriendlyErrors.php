@@ -7,9 +7,29 @@ use thiagoalessio\TesseractOCR\Tests\Unit\TestableCommand;
 use thiagoalessio\TesseractOCR\ImageNotFoundException;
 use thiagoalessio\TesseractOCR\TesseractNotFoundException;
 use thiagoalessio\TesseractOCR\UnsuccessfulCommandException;
+use thiagoalessio\TesseractOCR\DisabledRequiredFunctionsException;
 
 class FriendlyErrors extends TestCase
 {
+	public function testDisabledRequiredFunctions()
+	{
+		$originalDisabledFunctions = ini_get('disabled_functions');
+		ini_set('disabled_functions', "${originalDisabledFunctions},exec");
+
+		$expected = "Error! TesseractOCR library requires \"exec\", ";
+		$expected.= 'but it is disabled on your system.';
+		$expected.= PHP_EOL . PHP_EOL;
+		$expected.= 'Check "disabled_functions" on your php.ini settings.';
+		try {
+			(new TesseractOCR('./tests/EndToEnd/images/text.png'))->run();
+			throw new \Exception('DisabledRequiredFunctionsException not thrown');
+		} catch (DisabledRequiredFunctionsException $e) {
+			$this->assertEquals($expected, $e->getMessage());
+		}
+
+		ini_set('disabled_functions', $originalDisabledFunctions);
+	}
+
 	public function testImageNotFound()
 	{
 		$currentDir = realpath(

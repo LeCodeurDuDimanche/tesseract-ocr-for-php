@@ -3,9 +3,29 @@
 class ImageNotFoundException extends \Exception {}
 class TesseractNotFoundException extends \Exception {}
 class UnsuccessfulCommandException extends \Exception {}
+class DisabledRequiredFunctionsException extends \Exception {}
 
 class FriendlyErrors
 {
+	public static function checkDisabledFunctions()
+	{
+		$requiredFuncs = array('exec', 'system');
+		$disabledFuncs = explode(',', ini_get('disabled_functions'));
+		$disabledFuncs = array_map('trim', $disabledFuncs);
+
+		foreach($requiredFuncs as $func)
+		{
+			if (function_exists($func) && !in_array($func, $disabledFuncs))
+				continue;
+
+			$msg = "Error! TesseractOCR library requires \"$func\", ";
+			$msg.= 'but it is disabled on your system.';
+			$msg.= PHP_EOL . PHP_EOL;
+			$msg.= 'Check "disabled_functions" on your php.ini settings.';
+			throw new DisabledRequiredFunctionsException($msg);
+		}
+	}
+
 	public static function checkImagePath($image)
 	{
 		if (file_exists($image)) return;
